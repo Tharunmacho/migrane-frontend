@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { AppProvider } from './src/context/AppContext';
+import { AppProvider, useApp } from './src/context/AppContext';
 import { theme } from './src/theme/theme';
 import { apiService } from './src/services/api';
 
@@ -26,7 +26,11 @@ import { NotificationsScreen } from './src/screens/NotificationsScreen';
 // Icon imports matching exact bottom navigation mockup
 import { Home, BookOpen, Activity, BarChart2, User, MessageSquare } from 'lucide-react-native';
 
+import { GoogleSignin } from '@react-native-google-signin/google-signin';
+import auth from '@react-native-firebase/auth';
+
 function AppContent() {
+  const { logout } = useApp();
   // Default to false — LoginScreen shows immediately, switches to app if logged in.
   // This prevents any black/blank screen flash during startup.
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -57,6 +61,16 @@ function AppContent() {
 
   const handleLogout = async () => {
     try {
+      // Sign out from Firebase and Google Sign-In to clear account chooser cache
+      try {
+        await auth().signOut();
+        await GoogleSignin.signOut();
+      } catch (authErr) {
+        console.log("Firebase/Google Sign-Out error (safe to ignore if mock user):", authErr);
+      }
+
+      await logout();
+
       await AsyncStorage.removeItem('@auracast_logged_in');
       await AsyncStorage.removeItem('@auracast_cached_user');
       await apiService.clearMockProfile();

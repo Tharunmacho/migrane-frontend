@@ -2,7 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // Base URL configuration
-let BASE_URL = 'http://10.60.20.174:5000/api'; // Host PC local Wi-Fi IP (more reliable than loopback on physical device)
+let BASE_URL = 'https://migrane-app-backend-6gugpn-769e81-178-16-137-247.sslip.io/api';
 
 const client = axios.create({
   baseURL: BASE_URL,

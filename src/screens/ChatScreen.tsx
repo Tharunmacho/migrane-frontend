@@ -673,6 +673,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
     maxHeight: 120,
     fontSize: 14,
+    minHeight: 40,
   },
   sendBtn: {
     width: 36,

@@ -33,6 +33,7 @@ interface AppContextProps {
   markAllNotificationsAsRead: () => Promise<void>;
   clearAllNotifications: () => Promise<void>;
   dismissNotification: (id: string) => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextProps | undefined>(undefined);
@@ -162,10 +163,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     AsyncStorage.getItem(`@auracast_dismissed_notifications_${user._id}`)
       .then(stored => setDismissedIds(stored ? JSON.parse(stored) : []))
       .catch(() => {});
-    // Sync notifications in background (non-blocking)
-    AsyncStorage.getItem('@auracast_logged_in').then(loggedIn => {
-      if (loggedIn === 'true') syncDbNotifications();
-    }).catch(() => {});
+    // Sync notifications in background (non-blocking) immediately
+    syncDbNotifications();
   }, [user?._id, syncDbNotifications]);
 
   // ─── Notification actions ─────────────────────────────────────────────────
@@ -296,10 +295,14 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const triggerRefresh = useCallback(async () => {
     setRefreshTrigger(prev => prev + 1);
     // Kick off background notification refresh — non-blocking
-    AsyncStorage.getItem('@auracast_logged_in').then(loggedIn => {
-      if (loggedIn === 'true') syncDbNotifications();
-    }).catch(() => {});
+    syncDbNotifications();
   }, [syncDbNotifications]);
+
+  const logout = useCallback(async () => {
+    setUser(null);
+    setNotifications([]);
+    setDismissedIds([]);
+  }, []);
 
   // Run syncUser once on mount
   useEffect(() => {
@@ -321,6 +324,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         markAllNotificationsAsRead,
         clearAllNotifications,
         dismissNotification,
+        logout,
       }}
     >
       {children}

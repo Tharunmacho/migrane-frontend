@@ -18,29 +18,15 @@ import { Zap, Calendar, TrendingUp, Info, Activity } from 'lucide-react-native';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
-// ─── Fallback data (only used if API hasn't returned yet) ──────────────────────
-const FALLBACK_TRIGGERS = [
-  { name: 'Poor Sleep', confidence: 82, occurrences: 10, migraineMatches: 8 },
-  { name: 'Stress', confidence: 74, occurrences: 9, migraineMatches: 7 },
-  { name: 'Screen Time', confidence: 69, occurrences: 13, migraineMatches: 9 },
-  { name: 'Coffee', confidence: 45, occurrences: 11, migraineMatches: 5 },
-  { name: 'Weather Change', confidence: 38, occurrences: 8, migraineMatches: 3 },
-];
-
-const FALLBACK_PATTERNS = [
-  { title: 'Sleep < 6 hours → Migraine', confidence: 80, ratio: '8/10 times' },
-  { title: 'High Stress → Migraine', confidence: 74, ratio: '7/10 times' },
-  { title: 'Coffee + Poor Sleep → Severe', confidence: 91, ratio: '9/10 times' },
-];
-
-const FALLBACK_TRENDS = [
-  { dayName: 'Mon', score: 78 },
-  { dayName: 'Tue', score: 35 },
-  { dayName: 'Wed', score: 40 },
-  { dayName: 'Thu', score: 85 },
-  { dayName: 'Fri', score: 20 },
-  { dayName: 'Sat', score: 15 },
-  { dayName: 'Sun', score: 50 },
+// ─── Zero / Default trends for new accounts (no dummy fake data) ───────────────
+const ZERO_TRENDS = [
+  { dayName: 'Mon', score: 0 },
+  { dayName: 'Tue', score: 0 },
+  { dayName: 'Wed', score: 0 },
+  { dayName: 'Thu', score: 0 },
+  { dayName: 'Fri', score: 0 },
+  { dayName: 'Sat', score: 0 },
+  { dayName: 'Sun', score: 0 },
 ];
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
@@ -87,21 +73,24 @@ export const InsightsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           occurrences: item.occurrences,
           migraineMatches: item.migraineMatches,
         }));
-        if (mapped.length > 0) {
-          setTopTriggers(mapped);
-          const derived = mapped
-            .filter((t: any) => t.confidence >= 50)
-            .slice(0, 3)
-            .map((t: any) => ({
-              title: `${t.name} → Migraine`,
-              confidence: t.confidence,
-              ratio: `${t.migraineMatches}/${t.occurrences} times`,
-            }));
-          if (derived.length > 0) setPatterns(derived);
-        }
+        setTopTriggers(mapped);
+        const derived = mapped
+          .filter((t: any) => t.confidence >= 50)
+          .slice(0, 3)
+          .map((t: any) => ({
+            title: `${t.name} → Migraine`,
+            confidence: t.confidence,
+            ratio: `${t.migraineMatches}/${t.occurrences} times`,
+          }));
+        setPatterns(derived);
+      } else {
+        setTopTriggers([]);
+        setPatterns([]);
       }
     } catch (e) {
       console.warn('Trigger intelligence fetch failed:', e);
+      setTopTriggers([]);
+      setPatterns([]);
     } finally {
       setIntelLoading(false);
     }
@@ -115,7 +104,7 @@ export const InsightsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
         const trends =
           d.riskTrends && d.riskTrends.length > 0
             ? d.riskTrends.map((t: any) => ({ dayName: t.dayName, score: t.score }))
-            : FALLBACK_TRENDS;
+            : ZERO_TRENDS;
         setWeeklyStats({
           totalMigraineDays: d.totalMigraineDays ?? 0,
           averageSeverity: d.averageSeverity ?? 0,
@@ -123,9 +112,24 @@ export const InsightsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           topTriggers: d.topTriggers ?? [],
           isPremiumLocked: res.isPremiumLocked ?? false,
         });
+      } else {
+        setWeeklyStats({
+          totalMigraineDays: 0,
+          averageSeverity: 0,
+          trends: ZERO_TRENDS,
+          topTriggers: [],
+          isPremiumLocked: false,
+        });
       }
     } catch (e) {
       console.warn('Weekly insights fetch failed:', e);
+      setWeeklyStats({
+        totalMigraineDays: 0,
+        averageSeverity: 0,
+        trends: ZERO_TRENDS,
+        topTriggers: [],
+        isPremiumLocked: false,
+      });
     } finally {
       setWeeklyLoading(false);
     }
@@ -145,13 +149,13 @@ export const InsightsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
     Promise.all([fetchIntelligence(), fetchWeekly()]).finally(() => setRefreshing(false));
   };
 
-  // Use fallback data when real data hasn't loaded yet
-  const displayTriggers = topTriggers ?? FALLBACK_TRIGGERS;
-  const displayPatterns = patterns ?? FALLBACK_PATTERNS;
+  // Real loaded data or empty list if loaded and no items
+  const displayTriggers = topTriggers ?? [];
+  const displayPatterns = patterns ?? [];
   const displayWeekly = weeklyStats ?? {
     totalMigraineDays: 0,
     averageSeverity: 0,
-    trends: FALLBACK_TRENDS,
+    trends: ZERO_TRENDS,
     topTriggers: [],
     isPremiumLocked: false,
   };
@@ -173,6 +177,13 @@ export const InsightsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
           <View style={styles.loadingRow}>
             <ActivityIndicator size="small" color={theme.colors.primary} />
             <Text style={styles.loadingText}>Analyzing patterns...</Text>
+          </View>
+        ) : displayTriggers.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Zap size={24} color={theme.colors.textSubtle} style={styles.emptyIcon} />
+            <Text style={styles.emptyText}>
+              No trigger correlations detected yet. Keep logging triggers and migraines to generate AI insights.
+            </Text>
           </View>
         ) : (
           <View style={styles.triggersList}>
@@ -202,25 +213,34 @@ export const InsightsScreen: React.FC<{ navigation: any }> = ({ navigation }) =>
       {/* AI Pattern Intelligence */}
       <Text style={styles.sectionHeaderTitle}>AI PATTERN INTELLIGENCE</Text>
       <View style={styles.patternsContainer}>
-        {displayPatterns.map((pattern, idx) => {
-          const bc = getBadgeColors(pattern.confidence);
-          return (
-            <View key={idx} style={styles.patternCard}>
-              <View style={styles.patternLeft}>
-                <View style={styles.patternHeaderRow}>
-                  <Zap size={12} color="#F59E0B" fill="#F59E0B" />
-                  <Text style={styles.patternHeaderLabel}> PATTERN DETECTED</Text>
+        {displayPatterns.length === 0 ? (
+          <View style={styles.emptyPatternCard}>
+            <Info size={20} color={theme.colors.textSubtle} style={styles.emptyPatternIcon} />
+            <Text style={styles.emptyPatternText}>
+              Insufficient log data to calculate patterns. Log at least 3 migraine episodes to generate AI insights.
+            </Text>
+          </View>
+        ) : (
+          displayPatterns.map((pattern, idx) => {
+            const bc = getBadgeColors(pattern.confidence);
+            return (
+              <View key={idx} style={styles.patternCard}>
+                <View style={styles.patternLeft}>
+                  <View style={styles.patternHeaderRow}>
+                    <Zap size={12} color="#F59E0B" fill="#F59E0B" />
+                    <Text style={styles.patternHeaderLabel}> PATTERN DETECTED</Text>
+                  </View>
+                  <Text style={styles.patternTitle}>{pattern.title}</Text>
+                  <Text style={styles.patternSubText}>{pattern.ratio}</Text>
                 </View>
-                <Text style={styles.patternTitle}>{pattern.title}</Text>
-                <Text style={styles.patternSubText}>{pattern.ratio}</Text>
+                <View style={[styles.confBadge, { backgroundColor: bc.bg, borderColor: bc.border }]}>
+                  <Text style={[styles.confBadgeVal, { color: bc.text }]}>{pattern.confidence}%</Text>
+                  <Text style={[styles.confBadgeLabel, { color: bc.text }]}>CONF.</Text>
+                </View>
               </View>
-              <View style={[styles.confBadge, { backgroundColor: bc.bg, borderColor: bc.border }]}>
-                <Text style={[styles.confBadgeVal, { color: bc.text }]}>{pattern.confidence}%</Text>
-                <Text style={[styles.confBadgeLabel, { color: bc.text }]}>CONF.</Text>
-              </View>
-            </View>
-          );
-        })}
+            );
+          })
+        )}
       </View>
     </View>
   );
@@ -728,6 +748,43 @@ const styles = StyleSheet.create({
     fontStyle: 'italic',
     textAlign: 'center',
     paddingVertical: 12,
+  },
+  emptyContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 32,
+    paddingHorizontal: 16,
+  },
+  emptyIcon: {
+    marginBottom: 12,
+    opacity: 0.8,
+  },
+  emptyText: {
+    color: theme.colors.textMuted,
+    fontSize: 14,
+    textAlign: 'center',
+    lineHeight: 20,
+    fontWeight: '500',
+  },
+  emptyPatternCard: {
+    backgroundColor: theme.colors.surface,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: theme.colors.border,
+    padding: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emptyPatternIcon: {
+    marginBottom: 10,
+    opacity: 0.8,
+  },
+  emptyPatternText: {
+    color: theme.colors.textMuted,
+    fontSize: 13,
+    textAlign: 'center',
+    lineHeight: 18,
+    fontWeight: '500',
   },
 
   // Info card
