@@ -14,6 +14,8 @@ import { theme } from '../theme/theme';
 import { apiService } from '../services/api';
 import { Send, Sparkles, Trash2, Bot } from 'lucide-react-native';
 
+const KeyboardAvoidingContainer = Platform.OS === 'ios' ? KeyboardAvoidingView : View;
+
 interface Message {
   id: string;
   text: string;
@@ -169,10 +171,9 @@ export const ChatScreen: React.FC = () => {
   const showOnboarding = messages.filter(m => m.sender === 'user').length === 0;
 
   return (
-    <KeyboardAvoidingView
+    <KeyboardAvoidingContainer
       style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+      {...(Platform.OS === 'ios' ? { behavior: 'padding', keyboardVerticalOffset: 90 } : {})}
     >
       {/* Premium Header */}
       <View style={styles.header}>
@@ -345,7 +346,7 @@ export const ChatScreen: React.FC = () => {
           </TouchableOpacity>
         </View>
       </View>
-    </KeyboardAvoidingView>
+    </KeyboardAvoidingContainer>
   );
 };
 
@@ -669,9 +670,9 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     color: theme.colors.text,
-    paddingVertical: 8,
+    paddingVertical: Platform.OS === 'ios' ? 8 : 0,
     fontSize: 14,
-    height: 40,
+    height: 44,
   },
   sendBtn: {
     width: 36,

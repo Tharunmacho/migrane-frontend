@@ -94,33 +94,27 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
       if (triggersResult && triggersResult.success && triggersResult.data) {
         const t = triggersResult.data;
-        const triggerUserId = t.userId || t.user;
-        if (!triggerUserId || triggerUserId.toString() === userId.toString()) {
-          newNotifications.push({
-            id: `trigger_${userId}_${t._id || new Date(t.date).getTime()}`,
-            title: 'Daily Triggers Logged',
-            message: `Sleep: ${t.sleepHours || 0}h, Water: ${t.waterIntake || 0} glasses, Stress: ${t.stressLevel || 0}/10.`,
-            date: t.date || new Date().toISOString(),
-            read: false,
-            category: 'triggers',
-          });
-        }
+        newNotifications.push({
+          id: `trigger_${userId}_${t._id || new Date(t.date).getTime()}`,
+          title: 'Daily Triggers Logged',
+          message: `Sleep: ${t.sleepHours || 0}h, Water: ${t.waterIntake || 0} glasses, Stress: ${t.stressLevel || 0}/10.`,
+          date: t.date || new Date().toISOString(),
+          read: false,
+          category: 'triggers',
+        });
       }
 
       if (logsResult && logsResult.success && logsResult.data && logsResult.data.length > 0) {
         const latestLog = logsResult.data[0];
-        const logUserId = latestLog.userId || latestLog.user;
-        if (!logUserId || logUserId.toString() === userId.toString()) {
-          const formattedDate = new Date(latestLog.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
-          newNotifications.push({
-            id: `migraine_${userId}_${latestLog._id}`,
-            title: 'Migraine Episode Logged',
-            message: `Severity ${latestLog.painSeverity}/10 on ${formattedDate} at ${latestLog.startTime}. Symptoms: ${(latestLog.symptoms || []).slice(0, 3).join(', ')}.`,
-            date: latestLog.date,
-            read: false,
-            category: 'journal',
-          });
-        }
+        const formattedDate = new Date(latestLog.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        newNotifications.push({
+          id: `migraine_${userId}_${latestLog._id}`,
+          title: 'Migraine Episode Logged',
+          message: `Severity ${latestLog.painSeverity}/10 on ${formattedDate} at ${latestLog.startTime}. Symptoms: ${(latestLog.symptoms || []).slice(0, 3).join(', ')}.`,
+          date: latestLog.date,
+          read: false,
+          category: 'journal',
+        });
       }
 
       if (predResult && predResult.success && predResult.data) {
