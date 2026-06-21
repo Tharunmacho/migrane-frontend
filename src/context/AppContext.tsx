@@ -162,9 +162,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     // Load dismissed IDs from storage, then fire background notification sync
     AsyncStorage.getItem(`@auracast_dismissed_notifications_${user._id}`)
       .then(stored => setDismissedIds(stored ? JSON.parse(stored) : []))
-      .catch(() => {});
-    // Sync notifications in background (non-blocking) immediately
-    syncDbNotifications();
+      .catch(() => { });
+    // Sync notifications in background (non-blocking)
+    AsyncStorage.getItem('@auracast_logged_in').then(loggedIn => {
+      if (loggedIn === 'true') syncDbNotifications();
+    }).catch(() => { });
   }, [user?._id, syncDbNotifications]);
 
   // ─── Notification actions ─────────────────────────────────────────────────
@@ -222,7 +224,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setUser(cachedProfile);
         setLoading(false);
         // Persist cached user in background (non-blocking)
-        AsyncStorage.setItem('@auracast_cached_user', JSON.stringify(cachedProfile)).catch(() => {});
+        AsyncStorage.setItem('@auracast_cached_user', JSON.stringify(cachedProfile)).catch(() => { });
         // Also ensure headers are initialized in memory immediately
         await apiService.setMockProfile(cachedProfile._id, cachedProfile.email, cachedProfile.displayName || '');
         return;
@@ -276,7 +278,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
           .then(res => {
             if (res.success && res.data) {
               setUser(res.data);
-              AsyncStorage.setItem('@auracast_cached_user', JSON.stringify(res.data)).catch(() => {});
+              AsyncStorage.setItem('@auracast_cached_user', JSON.stringify(res.data)).catch(() => { });
             }
           })
           .catch(err => console.warn('Background user sync failed (non-critical):', err));
@@ -295,7 +297,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const triggerRefresh = useCallback(async () => {
     setRefreshTrigger(prev => prev + 1);
     // Kick off background notification refresh — non-blocking
-    syncDbNotifications();
+    AsyncStorage.getItem('@auracast_logged_in').then(loggedIn => {
+      if (loggedIn === 'true') syncDbNotifications();
+    }).catch(() => { });
   }, [syncDbNotifications]);
 
   const logout = useCallback(async () => {

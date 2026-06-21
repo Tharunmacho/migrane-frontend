@@ -90,7 +90,7 @@ export const ChatScreen: React.FC = () => {
           ])
         );
       };
-      
+
       anim1 = animate(dot1, 0);
       anim2 = animate(dot2, 100);
       anim3 = animate(dot3, 200);
@@ -113,7 +113,7 @@ export const ChatScreen: React.FC = () => {
 
   const handleSend = async (textToSend: string) => {
     if (!textToSend.trim()) return;
-    
+
     const userMsg: Message = {
       id: `user-${Date.now()}`,
       text: textToSend.trim(),
@@ -124,7 +124,7 @@ export const ChatScreen: React.FC = () => {
     setMessages(prev => [...prev, userMsg]);
     setInputText('');
     setSending(true);
-    
+
     setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
 
     try {
@@ -169,8 +169,8 @@ export const ChatScreen: React.FC = () => {
   const showOnboarding = messages.filter(m => m.sender === 'user').length === 0;
 
   return (
-    <KeyboardAvoidingView 
-      style={styles.container} 
+    <KeyboardAvoidingView
+      style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
     >
@@ -190,8 +190,8 @@ export const ChatScreen: React.FC = () => {
           </View>
         </View>
         {messages.length > 1 && (
-          <TouchableOpacity 
-            style={styles.clearBtn} 
+          <TouchableOpacity
+            style={styles.clearBtn}
             onPress={handleClearChat}
             activeOpacity={0.7}
           >
@@ -200,7 +200,7 @@ export const ChatScreen: React.FC = () => {
         )}
       </View>
 
-      <ScrollView 
+      <ScrollView
         style={styles.messageArea}
         contentContainerStyle={[
           styles.messageAreaContent,
@@ -245,14 +245,14 @@ export const ChatScreen: React.FC = () => {
         ) : (
           /* Conversation Thread */
           messages.map((msg) => (
-            <View 
-              key={msg.id} 
+            <View
+              key={msg.id}
               style={[
                 styles.bubbleContainer,
                 msg.sender === 'user' ? styles.bubbleContainerUser : styles.bubbleContainerAI
               ]}
             >
-              <View 
+              <View
                 style={[
                   styles.bubble,
                   msg.sender === 'user' ? styles.bubbleUser : styles.bubbleAI
@@ -303,8 +303,8 @@ export const ChatScreen: React.FC = () => {
         <View style={styles.suggestionsContainer}>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.suggestionsScroll}>
             {ONBOARDING_SUGGESTIONS.map((item, idx) => (
-              <TouchableOpacity 
-                key={idx} 
+              <TouchableOpacity
+                key={idx}
                 style={styles.suggestionChip}
                 onPress={() => handleSend(item.prompt)}
                 activeOpacity={0.7}
@@ -329,13 +329,12 @@ export const ChatScreen: React.FC = () => {
             placeholderTextColor={theme.colors.textSubtle}
             value={inputText}
             onChangeText={setInputText}
-            multiline
             onFocus={() => setIsFocused(true)}
             onBlur={() => setIsFocused(false)}
           />
-          <TouchableOpacity 
+          <TouchableOpacity
             style={[
-              styles.sendBtn, 
+              styles.sendBtn,
               !inputText.trim() ? styles.sendBtnDisabled : null
             ]}
             onPress={() => handleSend(inputText)}
@@ -671,9 +670,8 @@ const styles = StyleSheet.create({
     flex: 1,
     color: theme.colors.text,
     paddingVertical: 8,
-    maxHeight: 120,
     fontSize: 14,
-    minHeight: 40,
+    height: 40,
   },
   sendBtn: {
     width: 36,
