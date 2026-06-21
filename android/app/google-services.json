@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "884378357872",
+    "project_id": "migrane-app-5786b",
+    "storage_bucket": "migrane-app-5786b.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:884378357872:android:8aa6b61692375ddb6c64b5",
+        "android_client_info": {
+          "package_name": "com.auracast"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "884378357872-uth125m1n5jhavubcjdna6iprfo40omi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.auracast",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "884378357872-5at2o9mm72fr7otb7uo6lugp2lu44fnk.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBNYGHvChh2uPRpb9N6j4aMJ46sRNZrXUU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "884378357872-5at2o9mm72fr7otb7uo6lugp2lu44fnk.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
