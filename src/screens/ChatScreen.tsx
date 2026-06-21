@@ -320,31 +320,29 @@ export const ChatScreen: React.FC = () => {
 
       {/* Input Row */}
       <View style={styles.inputRow}>
-        <View style={[
-          styles.inputContainer,
-          isFocused && styles.inputContainerFocused
-        ]}>
-          <TextInput
-            style={styles.input}
-            placeholder="Explore shadow work, migraine tips..."
-            placeholderTextColor={theme.colors.textSubtle}
-            value={inputText}
-            onChangeText={setInputText}
-            onFocus={() => setIsFocused(true)}
-            onBlur={() => setIsFocused(false)}
-          />
-          <TouchableOpacity
-            style={[
-              styles.sendBtn,
-              !inputText.trim() ? styles.sendBtnDisabled : null
-            ]}
-            onPress={() => handleSend(inputText)}
-            disabled={!inputText.trim() || sending}
-            activeOpacity={0.8}
-          >
-            <Send size={16} color={theme.colors.background} />
-          </TouchableOpacity>
-        </View>
+        <TextInput
+          style={[
+            styles.input,
+            isFocused && styles.inputFocused
+          ]}
+          placeholder="Explore shadow work, migraine tips..."
+          placeholderTextColor={theme.colors.textSubtle}
+          value={inputText}
+          onChangeText={setInputText}
+          onFocus={() => setIsFocused(true)}
+          onBlur={() => setIsFocused(false)}
+        />
+        <TouchableOpacity
+          style={[
+            styles.sendBtn,
+            !inputText.trim() ? styles.sendBtnDisabled : null
+          ]}
+          onPress={() => handleSend(inputText)}
+          disabled={!inputText.trim() || sending}
+          activeOpacity={0.8}
+        >
+          <Send size={16} color="#FFFFFF" />
+        </TouchableOpacity>
       </View>
     </KeyboardAvoidingContainer>
   );
@@ -643,46 +641,37 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   inputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     paddingHorizontal: theme.spacing.md,
     paddingBottom: Platform.OS === 'ios' ? 24 : 12,
     paddingTop: theme.spacing.sm,
     backgroundColor: theme.colors.background,
+    gap: 8,
   },
-  inputContainer: {
-    flexDirection: 'row',
+  input: {
+    flex: 1,
     backgroundColor: theme.colors.surface,
     borderRadius: 24,
     borderWidth: 1.5,
     borderColor: theme.colors.border,
-    paddingLeft: 16,
-    paddingRight: 6,
-    paddingVertical: 5,
-    alignItems: 'center',
-  },
-  inputContainerFocused: {
-    borderColor: theme.colors.primary,
-    shadowColor: theme.colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  input: {
-    flex: 1,
+    paddingHorizontal: 16,
     color: theme.colors.text,
-    paddingVertical: Platform.OS === 'ios' ? 8 : 0,
     fontSize: 14,
-    height: 44,
+    height: 48,
+  },
+  inputFocused: {
+    borderColor: theme.colors.primary,
   },
   sendBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: '#0084FF',
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: theme.colors.primary,
     justifyContent: 'center',
     alignItems: 'center',
   },
   sendBtnDisabled: {
-    opacity: 0.35,
+    opacity: 0.4,
   }
 });
