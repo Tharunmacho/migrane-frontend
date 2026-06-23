@@ -330,37 +330,64 @@ export const DashboardScreen: React.FC<{ navigation: any }> = ({ navigation }) =
         </View>
 
         <View style={styles.tipsGrid}>
-          {/* Box 1: Drink 2L water */}
-          <View style={[styles.tipBox, styles.tipBoxWater]}>
-            <View style={[styles.tipIconWrapper, { backgroundColor: 'rgba(0, 163, 255, 0.08)' }]}>
-              <Droplet size={16} color="#00A3FF" fill="#00A3FF" />
-            </View>
-            <Text style={styles.tipText} numberOfLines={2}>Drink 2L water today</Text>
-          </View>
+          {prediction?.suggestions && prediction.suggestions.length > 0 ? (
+            prediction.suggestions.map((suggestion: any, idx: number) => {
+              let boxStyle: any = styles.tipBoxWater;
+              let iconWrapperStyle: any = { backgroundColor: 'rgba(0, 163, 255, 0.08)' };
+              let icon = <Droplet size={16} color="#00A3FF" fill="#00A3FF" />;
 
-          {/* Box 2: Reduce screen exposure */}
-          <View style={[styles.tipBox, styles.tipBoxScreen]}>
-            <View style={[styles.tipIconWrapper, { backgroundColor: 'rgba(168, 85, 247, 0.08)' }]}>
-              <Eye size={16} color="#A855F7" />
-            </View>
-            <Text style={styles.tipText} numberOfLines={2}>Reduce screen exposure</Text>
-          </View>
+              switch (suggestion.type) {
+                case 'water':
+                  boxStyle = styles.tipBoxWater;
+                  iconWrapperStyle = { backgroundColor: 'rgba(0, 163, 255, 0.08)' };
+                  icon = <Droplet size={16} color="#00A3FF" fill="#00A3FF" />;
+                  break;
+                case 'screen':
+                  boxStyle = styles.tipBoxScreen;
+                  iconWrapperStyle = { backgroundColor: 'rgba(168, 85, 247, 0.08)' };
+                  icon = <Eye size={16} color="#A855F7" />;
+                  break;
+                case 'sleep':
+                  boxStyle = styles.tipBoxRest;
+                  iconWrapperStyle = { backgroundColor: 'rgba(20, 184, 166, 0.08)' };
+                  icon = <Text style={styles.tipEmoji}>😴</Text>;
+                  break;
+                case 'stress':
+                  boxStyle = styles.tipBoxBreak;
+                  iconWrapperStyle = { backgroundColor: 'rgba(99, 102, 241, 0.08)' };
+                  icon = <Activity size={16} color="#6366F1" />;
+                  break;
+                case 'medical':
+                  boxStyle = { backgroundColor: 'rgba(239, 68, 68, 0.03)', borderColor: 'rgba(239, 68, 68, 0.15)' };
+                  iconWrapperStyle = { backgroundColor: 'rgba(239, 68, 68, 0.08)' };
+                  icon = <Plus size={16} color="#EF4444" />;
+                  break;
+                case 'environment':
+                  boxStyle = { backgroundColor: 'rgba(245, 158, 11, 0.03)', borderColor: 'rgba(245, 158, 11, 0.15)' };
+                  iconWrapperStyle = { backgroundColor: 'rgba(245, 158, 11, 0.08)' };
+                  icon = <AlertCircle size={16} color="#F59E0B" />;
+                  break;
+                default:
+                  boxStyle = styles.tipBoxBreak;
+                  iconWrapperStyle = { backgroundColor: 'rgba(99, 102, 241, 0.08)' };
+                  icon = <Sparkles size={16} color="#6366F1" />;
+                  break;
+              }
 
-          {/* Box 3: Take breaks every hour */}
-          <View style={[styles.tipBox, styles.tipBoxBreak]}>
-            <View style={[styles.tipIconWrapper, { backgroundColor: 'rgba(99, 102, 241, 0.08)' }]}>
-              <Pause size={16} color="#6366F1" fill="#6366F1" />
-            </View>
-            <Text style={styles.tipText} numberOfLines={2}>Take breaks every hour</Text>
-          </View>
+              const text = typeof suggestion === 'string' ? suggestion : suggestion.text;
 
-          {/* Box 4: Rest for 20 mins */}
-          <View style={[styles.tipBox, styles.tipBoxRest]}>
-            <View style={[styles.tipIconWrapper, { backgroundColor: 'rgba(20, 184, 166, 0.08)' }]}>
-              <Text style={styles.tipEmoji}>😴</Text>
-            </View>
-            <Text style={styles.tipText} numberOfLines={2}>Rest for 20 mins</Text>
-          </View>
+              return (
+                <View key={idx} style={[styles.tipBox, boxStyle]}>
+                  <View style={[styles.tipIconWrapper, iconWrapperStyle]}>
+                    {icon}
+                  </View>
+                  <Text style={styles.tipText} numberOfLines={3}>{text}</Text>
+                </View>
+              );
+            })
+          ) : (
+            <Text style={{ color: theme.colors.textSubtle, fontSize: 12 }}>No tips available right now.</Text>
+          )}
         </View>
       </View>
 

@@ -52,6 +52,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, navigati
   const [focusedDevUid, setFocusedDevUid] = useState(false);
   const [focusedDevEmail, setFocusedDevEmail] = useState(false);
   const [focusedDevName, setFocusedDevName] = useState(false);
+  const [focusedContactEmail, setFocusedContactEmail] = useState(false);
 
   // Emergency contacts states
   const [contacts, setContacts] = useState<any[]>([]);
@@ -59,6 +60,7 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, navigati
   const [showAddForm, setShowAddForm] = useState(false);
   const [newContactName, setNewContactName] = useState('');
   const [newContactPhone, setNewContactPhone] = useState('');
+  const [newContactEmail, setNewContactEmail] = useState('');
   const [newContactRelation, setNewContactRelation] = useState('Mom');
   const [submittingContact, setSubmittingContact] = useState(false);
 
@@ -146,8 +148,8 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, navigati
 
   // Add contact trigger
   const handleAddContact = async () => {
-    if (!newContactName.trim() || !newContactPhone.trim()) {
-      Alert.alert('Validation Error', 'Name and Phone Number are required.');
+    if (!newContactName.trim() || !newContactPhone.trim() || !newContactEmail.trim()) {
+      Alert.alert('Validation Error', 'Name, Phone Number, and Email Address are required.');
       return;
     }
 
@@ -157,11 +159,13 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, navigati
         name: newContactName.trim(),
         relationship: newContactRelation,
         phoneNumber: newContactPhone.trim(),
+        email: newContactEmail.trim()
       });
       if (res.success) {
         Alert.alert('Success', 'Emergency contact added successfully.');
         setNewContactName('');
         setNewContactPhone('');
+        setNewContactEmail('');
         setNewContactRelation('Mom');
         setShowAddForm(false);
         fetchContacts();
@@ -305,6 +309,18 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, navigati
               placeholderTextColor="#64748B"
               keyboardType="phone-pad"
             />
+            <Text style={styles.formGroupLabel}>Email Address</Text>
+            <TextInput
+              style={[styles.formInput, focusedContactEmail && styles.formInputFocused]}
+              onFocus={() => setFocusedContactEmail(true)}
+              onBlur={() => setFocusedContactEmail(false)}
+              value={newContactEmail}
+              onChangeText={setNewContactEmail}
+              placeholder="emergency@example.com"
+              placeholderTextColor="#64748B"
+              keyboardType="email-address"
+              autoCapitalize="none"
+            />
             <Text style={styles.formGroupLabel}>Relationship</Text>
             <View style={styles.relationshipRow}>
               {['Mom', 'Spouse', 'Friend', 'Doctor'].map((rel) => (
@@ -366,6 +382,9 @@ export const ProfileScreen: React.FC<ProfileScreenProps> = ({ onLogout, navigati
                   <Text style={styles.contactName}>{contact.name}</Text>
                   <Text style={styles.contactDetail}>
                     {contact.relationship} · {contact.phoneNumber}
+                  </Text>
+                  <Text style={styles.contactDetail}>
+                    {contact.email}
                   </Text>
                 </View>
                 <View style={styles.contactActionRow}>

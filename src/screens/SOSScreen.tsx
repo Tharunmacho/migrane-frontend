@@ -8,6 +8,7 @@ import {
   TextInput,
   ActivityIndicator,
   Alert,
+  Linking,
 } from 'react-native';
 import { theme } from '../theme/theme';
 import { apiService } from '../services/api';
@@ -22,16 +23,12 @@ export const SOSScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   const [addingContact, setAddingContact] = useState(false);
   const [contacts, setContacts] = useState<any[]>([]);
 
-  // Add Contact Form State
   const [name, setName] = useState('');
   const [relationship, setRelationship] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
+  const [email, setEmail] = useState('');
 
   const fetchContacts = async () => {
-    if (!user?.isPremium) {
-      setLoading(false);
-      return; // Save API calls for free tier since it is locked
-    }
     try {
       setLoading(true);
       const res = await apiService.getContacts();
@@ -50,8 +47,8 @@ export const SOSScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   }, [user?.isPremium]);
 
   const handleAddContact = async () => {
-    if (!name.trim() || !phoneNumber.trim()) {
-      Alert.alert('Validation Error', 'Contact name and phone number are required.');
+    if (!name.trim() || !phoneNumber.trim() || !email.trim()) {
+      Alert.alert('Validation Error', 'Contact name, phone number, and email are required.');
       return;
     }
     setAddingContact(true);
@@ -59,13 +56,15 @@ export const SOSScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
       const res = await apiService.addContact({
         name: name.trim(),
         relationship: relationship.trim(),
-        phoneNumber: phoneNumber.trim()
+        phoneNumber: phoneNumber.trim(),
+        email: email.trim()
       });
       if (res.success) {
         Alert.alert('Success', 'Emergency contact added successfully.');
         setName('');
         setRelationship('');
         setPhoneNumber('');
+        setEmail('');
         fetchContacts();
       }
     } catch (err: any) {
@@ -107,27 +106,48 @@ export const SOSScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
     }
 
     Alert.alert(
-      'Trigger Emergency Broadcast',
-      'This will simulate sending an emergency SMS to all your emergency contacts. Proceed?',
+      'Trigger Emergency SOS',
+      'Choose how you want to contact your emergency contacts for free via your carrier.',
       [
-        { text: 'Cancel', style: 'cancel' },
         {
-          text: 'Trigger SOS',
+          text: 'Auto-Email',
           onPress: async () => {
             setTriggeringSOS(true);
             try {
               const res = await apiService.triggerSOS();
               if (res.success) {
                 Alert.alert(
-                  '🚨 Distress Signal Sent',
-                  `Simulated distress broadcasts sent to ${res.alertedCount} contacts: ${res.contactsAlerted.join(', ')}.\n\nMessage: "${res.messageSent}"`
+                  '🚨 Emails Dispatched',
+                  `Automated distress emails sent to ${res.alertedCount} contacts: ${res.contactsAlerted.join(', ')}.`
                 );
               }
             } catch (err: any) {
-              Alert.alert('SOS Error', err.response?.data?.message || 'Failed to trigger SOS broadcast.');
+              Alert.alert('SOS Error', err.response?.data?.message || 'Failed to trigger SOS email broadcast.');
             } finally {
               setTriggeringSOS(false);
             }
+          }
+        },
+        {
+          text: 'Text All',
+          onPress: () => {
+            const numSeparator = Platform.OS === 'ios' ? ',' : ';';
+            const bodySeparator = Platform.OS === 'ios' ? '&' : '?';
+            const numbers = contacts.map(c => c.phoneNumber).join(numSeparator);
+            const url = `sms:${numbers}${bodySeparator}body=${encodeURIComponent("Emergency SOS: I am having a severe migraine and need immediate help!")}`;
+            
+            Linking.openURL(url).catch(() => {
+              Alert.alert('Error', 'Could not open the messaging app. Please try calling instead.');
+            });
+          }
+        },
+        {
+          text: 'Call Primary',
+          style: 'cancel',
+          onPress: () => {
+            Linking.openURL(`tel:${contacts[0].phoneNumber}`).catch(() => {
+              Alert.alert('Error', 'Could not open the dialer.');
+            });
           }
         }
       ]
@@ -135,41 +155,13 @@ export const SOSScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
   };
 
   const renderContent = () => {
-    // If Free Tier, lock SOS Mode
-    if (!user?.isPremium) {
-      return (
-        <View style={styles.lockedContainer}>
-          <Lock size={48} color={theme.colors.primary} style={styles.lockIcon} />
-          <Text style={styles.lockedTitle}>SOS Mode is Locked</Text>
-          <Text style={styles.lockedDescription}>
-            SOS Mode is an exclusive Premium feature. Register up to 5 trusted emergency contacts and trigger one-tap SMS broadcasts to request assistance during severe migraine attacks.
-          </Text>
-          
-          <View style={styles.lockedPreviewCard}>
-            <View style={styles.sosButtonMock}>
-              <ShieldAlert size={36} color={theme.colors.textSubtle} />
-              <Text style={styles.sosButtonMockText}>SOS BROADCAST</Text>
-            </View>
-            <Text style={styles.lockedPreviewTeaser}>"The user is currently experiencing a severe migraine episode and may need assistance."</Text>
-          </View>
-
-          <TouchableOpacity 
-            style={styles.unlockBtn}
-            onPress={() => navigation.navigate('Console')}
-          >
-            <Sparkles size={16} color={theme.colors.background} />
-            <Text style={styles.unlockBtnText}>Upgrade to Auracast Premium</Text>
-          </TouchableOpacity>
-        </View>
-      );
-    }
 
     return (
       <View style={styles.sosContent}>
         {/* BIG RED SOS BUTTON */}
         <View style={styles.buttonCard}>
-          <TouchableOpacity 
-            style={[styles.sosBtn, triggeringSOS ? styles.sosBtnTriggering : null]} 
+          <TouchableOpacity
+            style={[styles.sosBtn, triggeringSOS ? styles.sosBtnTriggering : null]}
             onPress={handleTriggerSOS}
             disabled={triggeringSOS}
           >
@@ -184,14 +176,14 @@ export const SOSScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
             )}
           </TouchableOpacity>
           <Text style={styles.sosDisclaimer}>
-            Tapping the broadcast button will instantly simulate sending emergency help alerts to all registered contacts.
+            Tapping the SOS button will let you instantly Auto-Email, Call, or Text your emergency contacts.
           </Text>
         </View>
 
         {/* ADD CONTACT SECTION */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Add Emergency Contact</Text>
-          
+
           <Text style={styles.label}>Contact Name</Text>
           <TextInput
             style={styles.input}
@@ -224,9 +216,20 @@ export const SOSScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
               />
             </View>
           </View>
+          
+          <Text style={styles.label}>Email Address</Text>
+          <TextInput
+            style={styles.input}
+            value={email}
+            onChangeText={setEmail}
+            placeholder="e.g. emergency@example.com"
+            placeholderTextColor={theme.colors.textSubtle}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
 
-          <TouchableOpacity 
-            style={styles.addContactBtn} 
+          <TouchableOpacity
+            style={styles.addContactBtn}
             onPress={handleAddContact}
             disabled={addingContact}
           >
@@ -244,7 +247,7 @@ export const SOSScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
         {/* LIST CONTACTS SECTION */}
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Your Trusted Contacts ({contacts.length})</Text>
-          
+
           {loading ? (
             <ActivityIndicator size="small" color={theme.colors.primary} style={{ marginVertical: 10 }} />
           ) : contacts.length === 0 ? (
@@ -258,9 +261,12 @@ export const SOSScreen: React.FC<{ navigation: any }> = ({ navigation }) => {
                     <Text style={styles.contactSubText}>
                       {contact.relationship ? `${contact.relationship} • ` : ''}{contact.phoneNumber}
                     </Text>
+                    <Text style={styles.contactSubText}>
+                      {contact.email}
+                    </Text>
                   </View>
-                  <TouchableOpacity 
-                    style={styles.deleteBtn} 
+                  <TouchableOpacity
+                    style={styles.deleteBtn}
                     onPress={() => handleDeleteContact(contact._id)}
                   >
                     <Trash2 size={16} color={theme.colors.risk.high} />

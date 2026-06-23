@@ -393,8 +393,24 @@ export const TriggersScreen: React.FC = () => {
               {screenTime}h
             </Text>
           </View>
-          <View style={styles.singleSliderWrapper}>
-            <CustomSlider value={screenTime} min={0} max={24} onChange={setScreenTime} color={theme.colors.primary} />
+          <View style={styles.sliderWithButtonsRow}>
+            <TouchableOpacity
+              style={styles.stepButton}
+              onPress={() => setScreenTime(prev => Math.max(0, prev - 1))}
+            >
+              <Text style={styles.stepButtonText}>-</Text>
+            </TouchableOpacity>
+
+            <View style={styles.sliderWrapper}>
+              <CustomSlider value={screenTime} min={0} max={24} onChange={setScreenTime} color={theme.colors.primary} />
+            </View>
+
+            <TouchableOpacity
+              style={styles.stepButton}
+              onPress={() => setScreenTime(prev => Math.min(24, prev + 1))}
+            >
+              <Text style={styles.stepButtonText}>+</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
